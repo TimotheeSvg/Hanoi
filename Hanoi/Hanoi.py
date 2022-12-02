@@ -1,39 +1,48 @@
 from tkinter import * 
+import random
 
 #parametres fenetre et affichage
-H_SIZE = 600
-W_SIZE = 720
+H_SIZE = 720
+W_SIZE = 1080
+NBR_PIECE = 7
+
 
 TITLE = "Hanoî" 
 BACKGROUND_COLOR = "#CBDBF2"
 
 #plateau
 COULEUR_PLATEAU = '#3F3F3F'
-OFFSET_Y = H_SIZE *0.7
-BORDER_OFFSET = 100
-BASE_W = 600
-BASE_H = 30
+OFFSET_Y = H_SIZE *0.9
+BORDER_OFFSET = W_SIZE * 0.05
+BASE_W = W_SIZE - BORDER_OFFSET 
+BASE_H = H_SIZE * 0.05
 
 #tour
 COULEUR_TOUR = "#6C6C73"
-PILLIER_H = 150
-PILLIER_W = 20
-
+BASE_BORDER_OFFSET = BASE_W * 0.1
+PILLIER_H = H_SIZE * 0.55
+PILLIER_W = W_SIZE * 0.03
+BORDER_TOP = (H_SIZE- OFFSET_Y) 
+#offset des différentes tours
+POSITION = [
+    BORDER_OFFSET + BASE_BORDER_OFFSET,
+    W_SIZE//2,
+    W_SIZE - BORDER_OFFSET - BASE_BORDER_OFFSET
+    ]
 
 #piece
+PIECE_H = PILLIER_H * 0.9 // NBR_PIECE - PILLIER_H*0.5//NBR_PIECE
+PIECE_COULEUR = [["#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])] for _ in range(NBR_PIECE)]
+PIECE_W = []
 
-PIECE_H = 25
-PIECE_W = [113,95,70,45]
-PIECE_COULEUR = ['#152A22','#305E4C','#56AE8C','#77FBC8']
-
-#offset des différentes tours
-POSITION = [100,350,600]
+ecart = (POSITION[1]-POSITION[0])
+for i in range(NBR_PIECE):
+    PIECE_W.append(ecart - ((W_SIZE//20)*i))
 
 #taux de rafraichissement
 TIMEDELAY = 1
-
 #vitesse des blocs
-STEP = 0.31
+STEP = 2
 
 class Plateau:
     def __init__(self):
@@ -46,28 +55,29 @@ class Plateau:
         self.cmptMovStrategie = 0
         
         #Creation socle                                                                                     
-        self.canvas.create_rectangle(BORDER_OFFSET -W_SIZE * 0.04 ,OFFSET_Y, BASE_W + W_SIZE * 0.06,OFFSET_Y+ BASE_H, fill=COULEUR_PLATEAU, outline="")
+        self.canvas.create_rectangle(BORDER_OFFSET,OFFSET_Y, BASE_W ,OFFSET_Y+ BASE_H, fill=COULEUR_PLATEAU, outline="")
 
         #Creation tour
-        self.canvas.create_rectangle(100 ,OFFSET_Y, 100 + PILLIER_W ,OFFSET_Y-PILLIER_H, fill=COULEUR_TOUR, outline="")
-        self.canvas.create_rectangle(350 ,OFFSET_Y, 350 + PILLIER_W ,OFFSET_Y-PILLIER_H, fill=COULEUR_TOUR, outline="")            
-        self.canvas.create_rectangle(600 ,OFFSET_Y, 600 + PILLIER_W ,OFFSET_Y-PILLIER_H, fill=COULEUR_TOUR, outline="")
+        for i in range(3):
+            self.canvas.create_rectangle(POSITION[i] ,OFFSET_Y, POSITION[i] + PILLIER_W ,OFFSET_Y-PILLIER_H, fill=COULEUR_TOUR, outline="")
       
+
+        
         #creation Piece
         self.piece = []
-        for i in range(4):
+        for i in range(NBR_PIECE):
             #offset des positions celon les coordonées de POSITION et la largeur des disques celon PIECE_W
-            x0 = POSITION[0] - PIECE_W[i] +20
+            x0 = POSITION[0] - PIECE_W[i] //2 + PILLIER_W//2
             y0 = OFFSET_Y - i*PIECE_H
-            x1 = POSITION[0] + PIECE_W[i]
+            x1 = x0 + PIECE_W[i]
             y1 =(OFFSET_Y - i*PIECE_H)- PIECE_H
-
+            
             #création des rectangles celon les offsets
             self.piece.append(self.canvas.create_rectangle( x0,y0, x1 ,y1, fill=PIECE_COULEUR[i], outline=""))
               
         #0 = Grande 3 = Petite
         #initialisation des pièces sur la tour 0
-        self.tabPiecePosition = [0,0,0,0]
+        self.tabPiecePosition = [0 for _ in range(NBR_PIECE)]
         
 
         #initialisation de la stratégie
@@ -90,7 +100,7 @@ class Plateau:
         #Début de la stratégie par récursivité
 
         #demande d'arret = nbr de disque - 1
-        if start==3:
+        if start==NBR_PIECE - 1:
             self.strategie.append([start, destination])
             return
         #appel récursif visant a deplacer la pièces de source sur la tour auxiliaire
@@ -137,7 +147,7 @@ class Plateau:
         
     def movementUp(self,i):
         #On monte la pièce jusqu'a 150 pixel
-        if (self.canvas.coords(self.piece[i])[1] >= 150):
+        if (self.canvas.coords(self.piece[i])[1] >= BORDER_TOP):
             self.canvas.move(self.piece[i], 0, -STEP)
         else:
             self.cmptMovDessin +=1
@@ -149,13 +159,13 @@ class Plateau:
             self.cmptMovDessin +=1  
     def movementRight(self,i, pos):
         #deplacement vers la droite jusqu'au coordonées de la tour visée
-        if(self.canvas.coords(self.piece[i])[0] <= POSITION[pos] - PIECE_W[i] + PILLIER_W ):
+        if(self.canvas.coords(self.piece[i])[0] <= POSITION[pos] - PIECE_W[i] //2 + PILLIER_W//2):
             self.canvas.move(self.piece[i], STEP, 0)  
         else:
             self.cmptMovDessin +=1
     def movementLeft(self,i, pos):
         #deplacement vers la gauche jusqu'au coordonées de la tour visée
-        if(self.canvas.coords(self.piece[i])[0] >= POSITION[pos] - PIECE_W[i] +PILLIER_W ):
+        if(self.canvas.coords(self.piece[i])[0] >= POSITION[pos]- PIECE_W[i] //2 + PILLIER_W//2 ):
             self.canvas.move(self.piece[i], -STEP, 0)  
         else:
             self.cmptMovDessin +=1
