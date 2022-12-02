@@ -19,6 +19,7 @@ COULEUR_TOUR = "#6C6C73"
 PILLIER_H = 150
 PILLIER_W = 20
 
+
 #piece
 
 PIECE_H = 25
