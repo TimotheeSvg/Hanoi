@@ -4,7 +4,7 @@ import random
 #parametres fenetre et affichage
 H_SIZE = 720
 W_SIZE = 1080
-NBR_PIECE = 7
+NBR_PIECE = 8
 
 
 TITLE = "Hanoî" 
@@ -42,7 +42,7 @@ for i in range(NBR_PIECE):
 #taux de rafraichissement
 TIMEDELAY = 1
 #vitesse des blocs
-STEP = 2
+STEP = 1
 
 class Plateau:
     def __init__(self):
